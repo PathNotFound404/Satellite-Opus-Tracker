@@ -24,6 +24,8 @@ export class SatellitePoints {
   private readonly nextAttr: BufferAttribute
   readonly maskAttr: BufferAttribute
   readonly count: number
+  /** False until the first keyframe pair is on screen. */
+  hasKeyframes = false
 
   constructor(count: number, options: { color: string; pixelRatio: number }) {
     this.count = count
@@ -104,6 +106,7 @@ export class SatellitePoints {
       this.nextAttr.array = next
       this.nextAttr.needsUpdate = true
     }
+    this.hasKeyframes = true
     this.object.visible = true
   }
 
@@ -114,6 +117,13 @@ export class SatellitePoints {
   /** Call after editing maskAttr.array. */
   maskChanged(): void {
     this.maskAttr.needsUpdate = true
+  }
+
+  /** False if SGP4 failed for satellite i at the latest keyframe (or none has arrived). */
+  isValid(i: number): boolean {
+    const next = this.nextAttr.array as Float32Array
+    const o = i * KEYFRAME_STRIDE + 3
+    return o < next.length && next[o]! >= 0.5
   }
 
   /** Current scene position of satellite i (CPU-side, same interpolation as the shader). */

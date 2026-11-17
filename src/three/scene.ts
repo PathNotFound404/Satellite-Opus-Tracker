@@ -3,6 +3,7 @@ import {
   DirectionalLight,
   PerspectiveCamera,
   Scene,
+  Vector3,
   WebGLRenderer,
   type Object3D,
 } from 'three'
@@ -35,9 +36,18 @@ export class SceneController {
   private readonly frameCallbacks: FrameCallback[] = []
   private readonly resizeObserver: ResizeObserver
   private readonly container: HTMLElement
+  private readonly reducedMotion: boolean
+  // Camera fly-to state (preallocated; animated in tick()).
+  private readonly flyFrom = new Vector3()
+  private readonly flyTo = new Vector3()
+  private flyFromDistance = 0
+  private flyToDistance = 0
+  private flyStartMs = -1
+  private flyDurationMs = 900
 
   constructor(container: HTMLElement, options: SceneOptions) {
     this.container = container
+    this.reducedMotion = options.reducedMotion
 
     this.renderer = new WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -65,6 +75,8 @@ export class SceneController {
     // Any user interaction stops the idle rotation for good.
     this.controls.addEventListener('start', () => {
       this.controls.autoRotate = false
+      // A drag takes over from any camera animation.
+      this.flyStartMs = -1
     })
 
     // Even, calm lighting: a strong ambient plus a key light that follows the
@@ -82,6 +94,13 @@ export class SceneController {
     this.resizeObserver = new ResizeObserver(() => this.resize())
     this.resizeObserver.observe(container)
     this.resize()
+    // The FOV is vertical, so on portrait screens pull back until the whole
+    // Earth (plus some orbit) fits the width. Only at startup; after that the
+    // user owns the zoom.
+    if (this.camera.aspect < 1) {
+      const scale = Math.min(MAX_CAMERA_DISTANCE / START_CAMERA_DISTANCE, 1 / this.camera.aspect)
+      this.camera.position.multiplyScalar(scale)
+    }
 
     this.renderer.setAnimationLoop(this.tick)
   }
@@ -106,10 +125,58 @@ export class SceneController {
     this.controls.autoRotate = false
   }
 
+  /**
+   * Swing the camera to look at `target` (scene units) from outside it, along
+   * the line from the Earth's centre. Keeps orbit-controls behaviour: the
+   * camera still orbits the Earth's centre afterwards.
+   */
+  flyToward(target: Vector3, distance?: number): void {
+    this.stopAutoRotate()
+    const targetRadius = target.length()
+    const current = this.camera.position.length()
+    // Stand back far enough to see the satellite against the Earth.
+    const wanted = distance ?? Math.min(MAX_CAMERA_DISTANCE, Math.max(targetRadius + 1.4, Math.min(current, 4)))
+    this.flyFrom.copy(this.camera.position).normalize()
+    this.flyTo.copy(target).normalize()
+    this.flyFromDistance = current
+    this.flyToDistance = wanted
+    if (this.reducedMotion) {
+      this.camera.position.copy(this.flyTo).multiplyScalar(wanted)
+      this.flyStartMs = -1
+      return
+    }
+    this.flyStartMs = performance.now()
+  }
+
+  private stepFlight(nowMs: number): void {
+    if (this.flyStartMs < 0) return
+    const t = Math.min(1, (nowMs - this.flyStartMs) / this.flyDurationMs)
+    // easeInOutCubic: gentle start and landing.
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    // Spherical interpolation of the direction keeps the camera outside the Earth.
+    const dot = Math.min(1, Math.max(-1, this.flyFrom.dot(this.flyTo)))
+    const angle = Math.acos(dot)
+    const distance = this.flyFromDistance + (this.flyToDistance - this.flyFromDistance) * e
+    if (angle < 1e-4) {
+      this.camera.position.copy(this.flyTo).multiplyScalar(distance)
+    } else {
+      const s = Math.sin(angle)
+      const a = Math.sin((1 - e) * angle) / s
+      const b = Math.sin(e * angle) / s
+      this.camera.position.set(
+        (this.flyFrom.x * a + this.flyTo.x * b) * distance,
+        (this.flyFrom.y * a + this.flyTo.y * b) * distance,
+        (this.flyFrom.z * a + this.flyTo.z * b) * distance,
+      )
+    }
+    if (t >= 1) this.flyStartMs = -1
+  }
+
   private readonly tick = (nowMs: number): void => {
     // Slow the drag rate as the camera gets close, so close-ups stay controllable.
     const distance = this.camera.position.length()
     this.controls.rotateSpeed = Math.min(1, Math.max(0.08, (distance - 1) / 2.5))
+    this.stepFlight(nowMs)
     this.controls.update()
     for (let i = 0; i < this.frameCallbacks.length; i++) this.frameCallbacks[i]!(nowMs)
     this.renderer.render(this.scene, this.camera)
