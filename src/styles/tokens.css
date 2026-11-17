@@ -1,0 +1,80 @@
+/*
+ * Design tokens. Components use these, never raw values.
+ * Palette follows Apple's dark-mode system colors.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Color */
+  --color-canvas: #000000;
+  --color-surface: rgba(28, 28, 30, 0.72);
+  --color-surface-strong: rgba(44, 44, 46, 0.86);
+  --color-surface-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-pressed: rgba(255, 255, 255, 0.1);
+  --color-hairline: rgba(255, 255, 255, 0.12);
+  --color-text: #f5f5f7;
+  --color-text-secondary: rgba(235, 235, 245, 0.68);
+  --color-text-tertiary: rgba(235, 235, 245, 0.5);
+  --color-accent: #0a84ff;
+  --color-accent-soft: rgba(10, 132, 255, 0.18);
+  --color-warning: #ff9f0a;
+  --color-danger: #ff453a;
+  --color-focus-ring: rgba(10, 132, 255, 0.6);
+
+  /* Satellite point colors (scene, read once by three.js) */
+  --color-sat-point: #c7d4e6;
+  --color-sat-selected: #0a84ff;
+  --color-orbit-line: #0a84ff;
+
+  /* Type */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI',
+    system-ui, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --tracking-tight: -0.01em;
+
+  /* Spacing (4 px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --hairline: 0.5px solid var(--color-hairline);
+
+  /* Material */
+  --blur-panel: saturate(180%) blur(24px);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.35);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layout */
+  --panel-width: 320px;
+  --edge-gap: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}

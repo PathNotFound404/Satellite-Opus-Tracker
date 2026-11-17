@@ -81,10 +81,10 @@ Keep `src/orbital/` free of Vue and three.js imports. It should be pure, testabl
 The owner wants a clean, modern UI inspired by Apple's product design.
 
 - Dark, calm canvas: the globe is the hero. UI floats over it in a few translucent panels (backdrop blur, hairline borders, soft large radii).
-- System font stack (, , , , ...). No web font downloads. Tabular numerals for live values.
+- System font stack (`-apple-system`, `BlinkMacSystemFont`, `SF Pro Text`, `Segoe UI`, `system-ui`, ...). No web font downloads. Tabular numerals for live values.
 - Restraint: one accent color, generous spacing, few borders, no gradients-for-decoration, no emoji icons. Short sentence-case labels.
-- Motion is subtle and quick (150-250 ms ease-out) and respects .
-- Design tokens (colors, radii, spacing, blur) live as CSS custom properties in . Components use tokens, never raw values.
+- Motion is subtle and quick (150-250 ms ease-out) and respects `prefers-reduced-motion`.
+- Design tokens (colors, radii, spacing, blur) live as CSS custom properties in `src/styles/tokens.css`. Components use tokens, never raw values.
 - Accessible: visible focus rings, keyboard reachable controls, text contrast at least 4.5:1 over the globe.
 
 ## Orbital math rules
