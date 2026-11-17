@@ -1,0 +1,39 @@
+{
+  "name": "satellite-opus-tracker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "vue-tsc --build",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "satellite.js": "7.2.0",
+    "three": "0.187.0",
+    "vue": "3.5.45"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "@types/three": "0.187.0",
+    "@vitejs/plugin-vue": "6.0.11",
+    "@vue/tsconfig": "0.9.1",
+    "eslint": "10.15.0",
+    "eslint-plugin-vue": "10.12.1",
+    "globals": "17.14.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0",
+    "vite": "8.3.8",
+    "vitest": "5.1.0",
+    "vue-eslint-parser": "10.4.2",
+    "vue-tsc": "3.3.14"
+  }
+}
