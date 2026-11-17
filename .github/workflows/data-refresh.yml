@@ -23,6 +23,9 @@ env:
 
 jobs:
   refresh:
+    # Skip cleanly (instead of failing every 6 h) until the Vercel project and
+    # the PRODUCTION_URL variable are set up.
+    if: vars.PRODUCTION_URL != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
