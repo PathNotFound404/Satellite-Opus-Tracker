@@ -260,12 +260,12 @@ function coords(l: ObserverLocation): string {
 }
 
 .btn--primary {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--color-accent);
+  background: var(--color-accent-fill);
   filter: brightness(1.1);
 }
 

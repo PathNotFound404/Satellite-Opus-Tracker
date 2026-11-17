@@ -239,8 +239,8 @@ function miss(km: number): string {
 }
 
 .btn--primary {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
 }
 
 .link {

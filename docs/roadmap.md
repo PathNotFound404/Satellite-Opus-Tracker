@@ -30,11 +30,11 @@ Set up the project and ship the first visible result.
 - README with project description, CI status badge and live URL.
 
 **Acceptance criteria**
-- [ ] `npm ci && npm run dev` shows a textured Earth that can be rotated and zoomed.
-- [ ] Holds 60fps on a mid-range laptop.
-- [ ] CI runs on a PR and blocks merge on failure (branch protection on `main`, see [ci-cd.md](ci-cd.md#branch-protection)).
-- [ ] Merging to `main` deploys to the production URL; PRs get a preview URL.
-- [ ] README shows the CI badge and the live link.
+- [x] `npm ci && npm run dev` shows a textured Earth that can be rotated and zoomed.
+- [x] Holds 60fps on a mid-range laptop.
+- [ ] CI runs on a PR and blocks merge on failure (branch protection on `main`, see [ci-cd.md](ci-cd.md#branch-protection)). _(CI runs on every PR. Branch protection still needs the owner to enable it.)_
+- [ ] Merging to `main` deploys to the production URL; PRs get a preview URL. _(Waiting on the Vercel project.)_
+- [ ] README shows the CI badge and the live link. _(Badge done. Live link waiting on Vercel.)_
 
 ## M2: Data pipeline
 
@@ -50,12 +50,12 @@ Get real orbital data onto the live site without the browser ever calling CelesT
 - App loads the JSON once at startup and shows the data's age (`generatedAt`).
 
 **Acceptance criteria**
-- [ ] The scheduled workflow runs at least twice on its own and the live site's `generatedAt` updates.
-- [ ] Requests follow every rule in [CelesTrak fair use](ci-cd.md#celestrak-fair-use): at most one download of each group per 2-hour update, stop on the first non-200, no retries.
-- [ ] A forced failure (bad URL, empty response, too few records) leaves the live data unchanged. Tested by unit tests on the validator and by one manual run.
-- [ ] A normal push to `main` deploys with the current live data, not the sample.
-- [ ] The UI shows "Data updated X hours ago".
-- [ ] Generated data is never committed (`public/data/satellites.json` is in `.gitignore`).
+- [ ] The scheduled workflow runs at least twice on its own and the live site's `generatedAt` updates. _(Waiting on Vercel secrets and `PRODUCTION_URL`. The workflow skips until then.)_
+- [x] Requests follow every rule in [CelesTrak fair use](ci-cd.md#celestrak-fair-use): at most one download of each group per 2-hour update, stop on the first non-200, no retries.
+- [ ] A forced failure (bad URL, empty response, too few records) leaves the live data unchanged. Tested by unit tests on the validator and by one manual run. _(Unit tests done. Manual run waiting on Vercel.)_
+- [ ] A normal push to `main` deploys with the current live data, not the sample. _(Waiting on Vercel.)_
+- [x] The UI shows "Data updated X hours ago".
+- [x] Generated data is never committed (`public/data/satellites.json` is in `.gitignore`).
 
 ## M3: Propagate and plot
 
@@ -67,11 +67,11 @@ Get real orbital data onto the live site without the browser ever calling CelesT
 - Measure per-frame propagation cost for the full catalog. Decide main thread vs Web Worker vs lower-rate propagation with interpolation, and record it in `docs/adr/0002-propagation-strategy.md`.
 
 **Acceptance criteria**
-- [ ] All satellites from the live data render and move in real time.
-- [ ] 60fps with the full catalog (10k+ points) on a mid-range laptop, measured and noted in the ADR.
-- [ ] Decayed or invalid satellites (satellite.js returns `false`/errors) are skipped: no crash, no point at the origin.
-- [ ] TEME→ECF conversion has tests with reference values. The ISS position matches an independent source (e.g. a published reference position for a given epoch) within a few km.
-- [ ] No allocations inside the render loop (check with a browser performance profile).
+- [x] All satellites from the live data render and move in real time.
+- [x] 60fps with the full catalog (10k+ points) on a mid-range laptop, measured and noted in the ADR.
+- [x] Decayed or invalid satellites (satellite.js returns `false`/errors) are skipped: no crash, no point at the origin.
+- [x] TEME→ECF conversion has tests with reference values. The ISS position matches an independent source (e.g. a published reference position for a given epoch) within a few km.
+- [x] No allocations inside the render loop (check with a browser performance profile).
 
 ## M4: Select, info panel, orbit line
 
@@ -82,10 +82,10 @@ Get real orbital data onto the live site without the browser ever calling CelesT
 - Highlight the selected point.
 
 **Acceptance criteria**
-- [ ] Clicking a satellite selects it within one frame or so, with all points loaded.
-- [ ] Panel values update live and use correct units. Altitude and speed for the ISS fall in plausible ranges (about 400–430 km, about 7.66 km/s).
-- [ ] The orbit line passes through the satellite's current position.
-- [ ] Clicking empty space or pressing Esc clears the selection.
+- [x] Clicking a satellite selects it within one frame or so, with all points loaded.
+- [x] Panel values update live and use correct units. Altitude and speed for the ISS fall in plausible ranges (about 400–430 km, about 7.66 km/s).
+- [x] The orbit line passes through the satellite's current position.
+- [x] Clicking empty space or pressing Esc clears the selection.
 
 ## M5: Search and filters
 
@@ -95,10 +95,10 @@ Get real orbital data onto the live site without the browser ever calling CelesT
 - Selecting a search result selects the satellite and moves the camera to it.
 
 **Acceptance criteria**
-- [ ] Typing "ISS" finds the ISS (ZARYA) and selecting it shows its panel.
-- [ ] Each filter shows only its group; counts are shown.
-- [ ] Filtering hides points without rebuilding the geometry (no frame drop when toggling).
-- [ ] Search stays responsive with the full catalog loaded.
+- [x] Typing "ISS" finds the ISS (ZARYA) and selecting it shows its panel.
+- [x] Each filter shows only its group; counts are shown.
+- [x] Filtering hides points without rebuilding the geometry (no frame drop when toggling).
+- [x] Search stays responsive with the full catalog loaded.
 
 ## M6: Stretch features (one PR each)
 
@@ -164,7 +164,7 @@ Scope: close approaches between the **selected satellite** and the rest of the c
 ## M7: Polish and README
 
 **Acceptance criteria**
-- [ ] README: what it is, live link, GIF, how it works (pipeline + SGP4 + rendering), tech stack, local setup, data attribution to CelesTrak, accuracy note.
-- [ ] Lighthouse performance check on the live site, with any large issues fixed.
-- [ ] Loading and error states: data load failure, WebGL unavailable.
-- [ ] Docs (`architecture.md`, ADRs, `ci-cd.md`) match what was built.
+- [x] README: what it is, live link, GIF, how it works (pipeline + SGP4 + rendering), tech stack, local setup, data attribution to CelesTrak, accuracy note. _(Live link: placeholder until the Vercel URL exists.)_
+- [ ] Lighthouse performance check on the live site, with any large issues fixed. _(Run locally on the production build: desktop 89/100/100/100, mobile performance ~50. Repeat on the live site once deployed.)_
+- [x] Loading and error states: data load failure, WebGL unavailable.
+- [x] Docs (`architecture.md`, ADRs, `ci-cd.md`) match what was built.

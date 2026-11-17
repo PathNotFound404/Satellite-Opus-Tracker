@@ -68,8 +68,8 @@ function onKeydown(e: KeyboardEvent): void {
 
 .filter__chip--active,
 .filter__chip--active:hover {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
 }
 
 .filter__count {
@@ -79,6 +79,6 @@ function onKeydown(e: KeyboardEvent): void {
 }
 
 .filter__chip--active .filter__count {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--color-on-accent);
 }
 </style>

@@ -114,7 +114,7 @@ if (showDebug) {
   <main class="app">
     <GlobeView @ready="scene = $event" @error="fatalError = $event" />
 
-    <header class="controls panel">
+    <header v-if="!fatalError" class="controls panel">
       <div class="title">
         <h1 class="title__name">Satellite Tracker</h1>
         <p class="title__sub">Live positions from public orbital data</p>
@@ -125,7 +125,7 @@ if (showDebug) {
       <ToggleRow v-model="dayNight" label="Day and night" hint="Sunlight and Earth's shadow at the shown time" />
     </header>
 
-    <TimeControls class="time-controls" />
+    <TimeControls v-if="!fatalError" class="time-controls" />
 
     <footer class="status">
       <DataAgeBadge
@@ -143,7 +143,7 @@ if (showDebug) {
       </div>
     </footer>
 
-    <aside class="side">
+    <aside v-if="!fatalError" class="side">
       <InfoPanel
         v-if="selected"
         :key="selected.index"
@@ -179,6 +179,9 @@ if (showDebug) {
     <div v-if="fatalError" class="fatal panel" role="alert">
       <p class="fatal__title">Can't show the globe</p>
       <p class="fatal__body">{{ fatalError }}</p>
+      <p class="fatal__body fatal__hint">
+        Try a current version of Chrome, Edge, Firefox or Safari, and check that hardware acceleration is turned on.
+      </p>
     </div>
   </main>
 </template>
@@ -315,6 +318,11 @@ if (showDebug) {
 .fatal__title {
   margin: 0 0 var(--space-2);
   font-weight: var(--weight-semibold);
+}
+
+.fatal__body.fatal__hint {
+  margin-top: var(--space-3);
+  color: var(--color-text-tertiary);
 }
 
 .fatal__body {
