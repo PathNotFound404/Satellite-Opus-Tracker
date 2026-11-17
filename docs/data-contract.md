@@ -59,9 +59,9 @@ CelesTrak GP data, queried as `https://celestrak.org/NORAD/elements/gp.php?GROUP
 
 ### Notes
 
-- **Satellite records keep CelesTrak's OMM field names unchanged,** so they can go straight to satellite.js's OMM parser (confirm the exact function name for the installed satellite.js version in M3) and stay comparable with the source. Only the fields above are kept; others are dropped to save size.
+- **Satellite records keep CelesTrak's OMM field names unchanged,** so they can go straight to satellite.js's OMM parser (`json2satrec` in satellite.js 7) and stay comparable with the source. Only the fields above are kept; others are dropped to save size.
 - **Units are OMM's:** `MEAN_MOTION` in revolutions/day, angles in degrees, `EPOCH` in UTC without a `Z` suffix (parse as UTC).
-- **`NORAD_CAT_ID` is the unique key.** Treat it as a number. (CelesTrak warns 5-digit catalog numbers are running out; if alpha-5 or larger IDs appear, bump `schemaVersion`.)
+- **`NORAD_CAT_ID` is the unique key.** Treat it as a number. Six-digit IDs already appear in the JSON as plain numbers (e.g. 100104, seen 2026-11-17); they fit the type, so they need no schema change. Bump `schemaVersion` only if CelesTrak's JSON ever sends a non-numeric ID (e.g. alpha-5 strings).
 
 ### Groups
 
