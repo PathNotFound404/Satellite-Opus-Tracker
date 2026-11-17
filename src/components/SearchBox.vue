@@ -201,8 +201,8 @@ function clearQuery(): void {
 }
 
 .search__option--active {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
 }
 
 .search__name {
@@ -217,7 +217,7 @@ function clearQuery(): void {
 }
 
 .search__option--active .search__id {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--color-on-accent);
 }
 
 .search__empty {

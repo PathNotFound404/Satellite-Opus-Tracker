@@ -179,8 +179,8 @@ const atFastest = computed(() => rate.value === RATES[RATES.length - 1])
   padding: 6px var(--space-3);
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   cursor: pointer;

@@ -12,16 +12,23 @@ const globeLoaded = ref(false)
 // Module-scope style: the controller is never reactive.
 let controller: SceneController | null = null
 
+/**
+ * 4K textures only where they can show (wide screens, zoomed in); 2K elsewhere
+ * saves ~1.7 MB on phones and tablets.
+ */
+function textureUrls(): { day: string; night: string } {
+  const base = `${import.meta.env.BASE_URL}textures/`
+  const suffix = window.screen.width >= 1024 ? '' : '-2k'
+  return { day: `${base}earth-blue-marble${suffix}.jpg`, night: `${base}earth-night${suffix}.jpg` }
+}
+
 onMounted(() => {
   if (!container.value) return
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   try {
     controller = markRaw(
       new SceneController(container.value, {
-        textures: {
-          day: `${import.meta.env.BASE_URL}textures/earth-blue-marble.jpg`,
-          night: `${import.meta.env.BASE_URL}textures/earth-night.jpg`,
-        },
+        textures: textureUrls(),
         reducedMotion,
         onGlobeReady: () => {
           globeLoaded.value = true

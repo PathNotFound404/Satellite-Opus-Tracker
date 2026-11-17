@@ -17,6 +17,9 @@
   --color-text-tertiary: rgba(235, 235, 245, 0.5);
   --color-accent: #0a84ff;
   --color-accent-soft: rgba(10, 132, 255, 0.18);
+  /* Filled controls with white text: the system blue only reaches 3.6:1, this reaches 4.7:1. */
+  --color-accent-fill: #0071e3;
+  --color-on-accent: #ffffff;
   --color-success: #30d158;
   --color-warning: #ff9f0a;
   --color-danger: #ff453a;
