@@ -15,6 +15,7 @@ Thousands of real satellites moving in real time on an interactive 3D globe. Orb
 | 3. Propagate and plot | Done |
 | 4. Select, info panel, orbit | Done |
 | 5. Search and filters | Done |
+| 6. Stretch features | In progress: time controls done |
 
 See [docs/roadmap.md](docs/roadmap.md).
 
@@ -24,7 +25,7 @@ See [docs/roadmap.md](docs/roadmap.md).
 2. **Orbit math:** a Web Worker runs SGP4 ([satellite.js](https://github.com/shashwatak/satellite-js)) for every satellite once a second and converts TEME to Earth-fixed coordinates with GMST.
 3. **Rendering:** all satellites are one three.js `Points` draw call. The vertex shader interpolates between the two latest keyframes, so the main thread does almost nothing per frame. See [ADR 0002](docs/adr/0002-propagation-strategy.md).
 
-Click any satellite for its altitude, speed, inclination, period and orbit. Search by name or NORAD ID (try "ISS"), or filter to stations, Starlink, GPS or weather satellites. Esc clears the selection.
+Click any satellite for its altitude, speed, inclination, period and orbit. Search by name or NORAD ID (try "ISS"), or filter to stations, Starlink, GPS or weather satellites. Esc clears the selection. Time controls at the bottom pause, rewind or speed up to 1000x (Space, `[` and `]`), and **Now** returns to real time.
 
 Add `?debug` to the URL for frame timing and propagation stats.
 

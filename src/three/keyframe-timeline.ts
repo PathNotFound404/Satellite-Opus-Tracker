@@ -9,8 +9,12 @@
 
 /** Wall-clock spacing between keyframes. 1 s keeps linear interpolation error ~1 m for LEO. */
 export const KEYFRAME_WALL_MS = 1000
-/** Upper bound on keyframe spacing in simulation time, for fast time rates. */
-export const MAX_KEYFRAME_SIM_MS = 30_000
+/**
+ * Upper bound on keyframe spacing in simulation time, for fast time rates.
+ * At 60 s, linear interpolation is off by ~4 km for LEO: sub-pixel at normal
+ * zoom, and it keeps 1000x to ~17 keyframes per second (ADR 0002).
+ */
+export const MAX_KEYFRAME_SIM_MS = 60_000
 
 /** `advance()` results that aren't an interpolation factor. */
 export const NOT_READY = -1
@@ -49,8 +53,12 @@ export class KeyframeTimeline {
     return Math.min(MAX_KEYFRAME_SIM_MS, Math.max(KEYFRAME_WALL_MS, KEYFRAME_WALL_MS * Math.abs(rate)))
   }
 
-  /** Throw away everything and start again around `simMs` (time jumped, or rate flipped). */
-  reset(simMs: number, rate: number): void {
+  /**
+   * Throw away everything and start again around `simMs` (time jumped or the
+   * rate changed). `leadMs` (wall time) starts the new pair ahead of the
+   * clock so it is still current when the worker returns it.
+   */
+  reset(simMs: number, rate: number, leadMs = 0): void {
     this.generation++
     for (const s of this.slots) {
       // A pending slot's buffer is inside the worker; it comes back via receive().
@@ -59,8 +67,9 @@ export class KeyframeTimeline {
     this.prev = null
     this.next = null
     const step = KeyframeTimeline.spacingMs(rate) * Math.sign(rate || 1)
-    this.requestAt(simMs)
-    this.requestAt(simMs + step)
+    const start = simMs + leadMs * rate
+    this.requestAt(start)
+    this.requestAt(start + step)
   }
 
   /**
@@ -98,9 +107,9 @@ export class KeyframeTimeline {
     // Way outside the window (a jump the clock didn't announce): start over.
     if (t < -1 || t > 3) return NEEDS_RESET
 
-    // Keep one keyframe in flight ahead of `next`.
+    // Keep one keyframe in flight ahead of `next`, spaced for the current rate.
     if (t > 0.25 && !this.hasPending()) {
-      this.requestAt(this.next.timeMs + span)
+      this.requestAt(this.next.timeMs + KeyframeTimeline.spacingMs(rate) * Math.sign(rate || 1))
     }
     return Math.min(1, Math.max(0, t))
   }
