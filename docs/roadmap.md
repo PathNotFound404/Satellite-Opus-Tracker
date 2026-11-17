@@ -122,6 +122,15 @@ Each stretch feature needs its own acceptance criteria written before work start
 - [x] 60 fps holds at 1000x forwards and backwards with the full catalog, with no flicker when changing rate.
 - [x] Controls are keyboard reachable and labelled for screen readers.
 
+### M6.2 Day/night shading: acceptance criteria
+
+- [x] The terminator comes from the Sun's position at simulation time. The subsolar point matches an independent reference (skyfield + JPL DE421) within 0.5° at three dates (solstice, equinox, today).
+- [x] The night side is dark with city lights and a soft twilight band; the day side looks as before.
+- [x] Satellites in Earth's shadow are dimmed, so sunlit ones stand out (cylindrical shadow model).
+- [x] Shading follows the time controls: at 1000x the terminator visibly sweeps west.
+- [x] A switch turns the shading off, restoring the even lighting.
+- [x] 60 fps holds with shading on.
+
 ## M7: Polish and README
 
 **Acceptance criteria**

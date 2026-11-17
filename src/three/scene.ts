@@ -1,6 +1,4 @@
 import {
-  AmbientLight,
-  DirectionalLight,
   PerspectiveCamera,
   Scene,
   Vector3,
@@ -9,11 +7,12 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createGlobe, type Globe } from './globe'
+import { Lighting } from './lighting'
 
 export type FrameCallback = (nowMs: number) => void
 
 export interface SceneOptions {
-  textureUrl: string
+  textures: { day: string; night: string }
   reducedMotion: boolean
   onGlobeReady?: () => void
 }
@@ -31,6 +30,7 @@ export class SceneController {
   readonly camera: PerspectiveCamera
   readonly renderer: WebGLRenderer
   readonly controls: OrbitControls
+  readonly lighting: Lighting
   private readonly globe: Globe
   // An array, not a Set: iterating it each frame allocates no iterator.
   private readonly frameCallbacks: FrameCallback[] = []
@@ -79,16 +79,11 @@ export class SceneController {
       this.flyStartMs = -1
     })
 
-    // Even, calm lighting: a strong ambient plus a key light that follows the
-    // camera, so the side you look at is always lit. Real day/night shading is
-    // a separate stretch feature.
-    this.scene.add(new AmbientLight(0xffffff, 1.6))
-    const key = new DirectionalLight(0xffffff, 1.4)
-    key.position.set(-1.5, 1.5, 2)
-    this.camera.add(key)
-    this.scene.add(this.camera)
+    // Lighting is done in the globe and satellite shaders (no three.js lights);
+    // this holds the shared Sun direction and day/night amount.
+    this.lighting = new Lighting(options.reducedMotion ? 0 : 400)
 
-    this.globe = createGlobe(this.renderer, options.textureUrl, options.onGlobeReady)
+    this.globe = createGlobe(this.renderer, options.textures, this.lighting, options.onGlobeReady)
     this.scene.add(this.globe.group)
 
     this.resizeObserver = new ResizeObserver(() => this.resize())

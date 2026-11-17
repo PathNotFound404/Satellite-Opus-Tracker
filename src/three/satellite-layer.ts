@@ -38,6 +38,7 @@ export class SatelliteLayer {
     this.points = new SatellitePoints(records.length, {
       color: options.color,
       pixelRatio: scene.renderer.getPixelRatio(),
+      lighting: scene.lighting,
     })
     scene.add(this.points.object)
 
