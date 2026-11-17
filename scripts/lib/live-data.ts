@@ -25,6 +25,15 @@ export function liveDataUrl(productionUrl: string): string {
   return `${productionUrl}/data/satellites.json`
 }
 
+/**
+ * True for the committed sample (or anything built from it). A production site
+ * serving the sample has no real data yet, so it must not count as "fresh" or
+ * as a baseline for the record-count check.
+ */
+export function isSampleFile(file: Pick<SatelliteFile, 'source'>): boolean {
+  return /sample/i.test(file.source)
+}
+
 /** Downloads and shape-checks the live file. Returns null if it doesn't exist yet (404). */
 export async function downloadLiveFile(
   productionUrl: string,

@@ -19,6 +19,7 @@ import {
   annotate,
   DATA_PATH,
   downloadLiveFile,
+  isSampleFile,
   LIVE_CACHE_PATH,
   resolveProductionUrl,
   setGithubOutput,
@@ -28,12 +29,13 @@ async function liveCount(): Promise<number | undefined> {
   if (existsSync(LIVE_CACHE_PATH)) {
     const cached: unknown = JSON.parse(readFileSync(LIVE_CACHE_PATH, 'utf8'))
     assertFileShape(cached)
-    return cached.count
+    return isSampleFile(cached) ? undefined : cached.count
   }
   const productionUrl = resolveProductionUrl()
   if (!productionUrl) return undefined
   const live = await downloadLiveFile(productionUrl)
-  return live?.file.count
+  // The sample's 48 records are no baseline for the 80% partial-response check.
+  return live && !isSampleFile(live.file) ? live.file.count : undefined
 }
 
 async function main(): Promise<void> {
