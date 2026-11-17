@@ -150,6 +150,17 @@ Each stretch feature needs its own acceptance criteria written before work start
 - [x] The observer's location is marked on the globe.
 - [x] Computing passes doesn't drop frames (24 h for the ISS: about 4 ms).
 
+### M6.5 Conjunction highlighting: acceptance criteria
+
+Scope: close approaches between the **selected satellite** and the rest of the catalog (all-pairs screening of 16k+ objects is out of scope for a browser).
+
+- [x] On request, screen the next 24 hours of simulation time and list approaches closer than 10 km: other object, time of closest approach, miss distance (whole km) and relative speed.
+- [x] Screening runs in a Web Worker with progress, and never drops frames.
+- [x] The screening finds every approach that a brute-force 1-second search finds (checked on a crafted crossing case in unit tests and against a brute-force reference for a real Starlink satellite).
+- [x] Co-located catalogue entries (e.g. docked ISS modules) are not reported as conjunctions.
+- [x] Choosing an approach jumps to just before it and highlights the other object.
+- [x] Clearly labelled approximate: public GP data is not suitable for real collision assessment.
+
 ## M7: Polish and README
 
 **Acceptance criteria**

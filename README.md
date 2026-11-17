@@ -15,7 +15,7 @@ Thousands of real satellites moving in real time on an interactive 3D globe. Orb
 | 3. Propagate and plot | Done |
 | 4. Select, info panel, orbit | Done |
 | 5. Search and filters | Done |
-| 6. Stretch features | In progress: time controls, day/night, ground track, pass predictor done |
+| 6. Stretch features | Done: time controls, day/night, ground track, pass predictor, close approaches |
 
 See [docs/roadmap.md](docs/roadmap.md).
 
@@ -28,6 +28,8 @@ See [docs/roadmap.md](docs/roadmap.md).
 Click any satellite for its altitude, speed, inclination, period, orbit (blue) and ground track (white: the last orbit dim, the next one bright). Search by name or NORAD ID (try "ISS"), or filter to stations, Starlink, GPS or weather satellites. Esc clears the selection. Time controls at the bottom pause, rewind or speed up to 1000x (Space, `[` and `]`), and **Now** returns to real time. **Day and night** shades the Earth from the Sun's position at the shown time and dims satellites in Earth's shadow.
 
 **Passes over you** lists when the selected satellite crosses your sky in the next 24 hours, marks passes you can see with the naked eye, and jumps to any of them. Your location stays in your browser.
+
+**Close approaches** screens the whole catalogue for objects passing within 10 km of the selected satellite in the next 24 hours (approximate; see [ADR 0003](docs/adr/0003-conjunction-screening.md)).
 
 Add `?debug` to the URL for frame timing and propagation stats.
 
