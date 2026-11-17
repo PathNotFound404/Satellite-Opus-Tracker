@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { EARTH_RADIUS_KM } from '../orbital/constants'
-import { ecfKmToScene, KM_TO_SCENE, latLonToScene } from './units'
+import { ecfKmToScene, KM_TO_SCENE, latLonToScene, sceneToEcfKm } from './units'
 
 describe('ecfKmToScene', () => {
   it('maps one Earth radius to one scene unit', () => {
@@ -45,5 +45,17 @@ describe('latLonToScene', () => {
     expect(out[2]).toBeCloseTo(-1, 12)
     latLonToScene(90, 0, 1, out)
     expect(out[1]).toBeCloseTo(1, 12)
+  })
+})
+
+describe('sceneToEcfKm', () => {
+  it('inverts ecfKmToScene', () => {
+    const scene = [0, 0, 0]
+    const back = [0, 0, 0]
+    ecfKmToScene(1234, -5678, 3456, scene)
+    sceneToEcfKm(scene[0]!, scene[1]!, scene[2]!, back)
+    expect(back[0]).toBeCloseTo(1234, 9)
+    expect(back[1]).toBeCloseTo(-5678, 9)
+    expect(back[2]).toBeCloseTo(3456, 9)
   })
 })

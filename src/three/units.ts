@@ -44,3 +44,16 @@ export function latLonToScene(
   const scale = radius * EARTH_RADIUS_KM
   ecfKmToScene(xKm * scale, yKm * scale, zKm * scale, out, offset)
 }
+
+/** Inverse of ecfKmToScene: scene units -> ECF km, into out[offset..+2]. */
+export function sceneToEcfKm(
+  x: number,
+  y: number,
+  z: number,
+  out: Float32Array | Float64Array | number[],
+  offset = 0,
+): void {
+  out[offset] = x * EARTH_RADIUS_KM
+  out[offset + 1] = -z * EARTH_RADIUS_KM
+  out[offset + 2] = y * EARTH_RADIUS_KM
+}

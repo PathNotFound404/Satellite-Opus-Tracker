@@ -131,6 +131,14 @@ Each stretch feature needs its own acceptance criteria written before work start
 - [x] A switch turns the shading off, restoring the even lighting.
 - [x] 60 fps holds with shading on.
 
+### M6.3 Ground track: acceptance criteria
+
+- [x] The selected satellite shows its ground track on the Earth's surface: the last orbit (dimmer) and the next orbit (brighter), meeting at the satellite's current subpoint.
+- [x] Subpoints use WGS84 geodetic latitude (matching the map texture) and agree with an independent reference (skyfield `wgs84.latlon_of`) within 0.01°.
+- [x] The track follows simulation time, including the time controls, without visible jumps.
+- [x] The far side of the track is hidden by the Earth; no lines cut through the globe.
+- [x] Clearing the selection removes the track. 60 fps holds with a track shown.
+
 ## M7: Polish and README
 
 **Acceptance criteria**
