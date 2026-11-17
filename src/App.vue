@@ -6,15 +6,20 @@ import DebugReadout from './components/DebugReadout.vue'
 import GlobeView from './components/GlobeView.vue'
 import GroupFilter from './components/GroupFilter.vue'
 import InfoPanel from './components/InfoPanel.vue'
+import PassesPanel from './components/PassesPanel.vue'
 import SearchBox from './components/SearchBox.vue'
 import TimeControls from './components/TimeControls.vue'
 import ToggleRow from './components/ToggleRow.vue'
 import { useFilters } from './composables/useFilters'
 import { useLighting } from './composables/useLighting'
+import { useObserver } from './composables/useObserver'
+import { useObserverMarker } from './composables/useObserverMarker'
+import { usePasses } from './composables/usePasses'
 import { useSatelliteData } from './composables/useSatelliteData'
 import { useSatelliteLayer } from './composables/useSatelliteLayer'
 import { useSelection } from './composables/useSelection'
 import type { SceneController } from './three/scene'
+import { latLonToScene } from './three/units'
 import { buildSearchIndex } from './utils/search'
 
 const fatalError = ref<string | null>(null)
@@ -29,6 +34,21 @@ const { layer, stats } = useSatelliteLayer(scene, file)
 const { dayNight } = useLighting(scene)
 const { selectedIndex, selected, live, propagationFailed, select, clear } = useSelection(scene, layer, file)
 const { active: activeFilter, counts, includes: filterIncludes } = useFilters(layer, file)
+
+const observer = useObserver()
+useObserverMarker(scene, observer.location)
+const selectedRecord = computed(() => selected.value?.record ?? null)
+const { result: passResult, jumpTo: jumpToTime } = usePasses(selectedRecord, observer.location)
+
+// Jump to just before a pass and look down on the observer, so the pass can be watched.
+const observerPoint = [0, 0, 0]
+function jumpToPass(ms: number): void {
+  jumpToTime(ms)
+  const loc = observer.location.value
+  if (!loc || !scene.value) return
+  latLonToScene(loc.latDeg, loc.lonDeg, 1, observerPoint)
+  scene.value.flyToward(flyTarget.set(observerPoint[0]!, observerPoint[1]!, observerPoint[2]!))
+}
 
 const searchIndex = computed(() => (file.value ? buildSearchIndex(file.value.satellites) : null))
 // Satellites that failed to propagate are left out of search results.
@@ -100,6 +120,18 @@ if (showDebug) {
         :live="live"
         :propagation-failed="propagationFailed"
         @close="clear()"
+      />
+      <PassesPanel
+        v-if="selected"
+        :satellite-name="selected.record.OBJECT_NAME"
+        :location="observer.location.value"
+        :locating="observer.locating.value"
+        :error="observer.error.value"
+        :result="passResult"
+        :set-manual="observer.setManual"
+        @use-device="observer.useDeviceLocation()"
+        @clear-location="observer.clear()"
+        @jump="jumpToPass"
       />
     </aside>
 
@@ -188,6 +220,9 @@ if (showDebug) {
   flex-direction: column;
   gap: var(--space-3);
   max-height: calc(100% - 2 * var(--edge-gap));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
 }
 
 .time-controls {
@@ -212,9 +247,11 @@ if (showDebug) {
     top: auto;
     left: var(--edge-gap);
     bottom: calc(var(--edge-gap) + 104px);
+    max-height: 52vh;
   }
 
-  .side :deep(.info) {
+  .side :deep(.info),
+  .side :deep(.passes) {
     width: 100%;
     max-width: none;
   }

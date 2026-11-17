@@ -139,6 +139,17 @@ Each stretch feature needs its own acceptance criteria written before work start
 - [x] The far side of the track is hidden by the Earth; no lines cut through the globe.
 - [x] Clearing the selection removes the track. 60 fps holds with a track shown.
 
+### M6.4 Next-pass predictor: acceptance criteria
+
+- [x] Location from browser geolocation, or typed coordinates (validated) as a fallback. Stored only in this browser, rounded to 0.01°, never sent anywhere, and can be forgotten.
+- [x] For the selected satellite: passes in the next 24 hours of simulation time that peak at 10° or more, with rise time, peak elevation, rise→set direction and duration, in the viewer's time zone.
+- [x] Matches an independent prediction: skyfield `find_events` for the ISS over New York (24 h) agrees within 10 s on rise, peak and set, 0.2° on peak elevation and 0.5° on azimuths.
+- [x] Geostationary satellites that never move across the sky say "always above your horizon" or "never rises", instead of a misleading list.
+- [x] Passes where the satellite is sunlit and the observer's sky is dark (Sun below -6°) are marked "Visible", matching skyfield's sunlit check.
+- [x] Clicking a pass jumps the simulation to a minute before it and flies the camera to the observer.
+- [x] The observer's location is marked on the globe.
+- [x] Computing passes doesn't drop frames (24 h for the ISS: about 4 ms).
+
 ## M7: Polish and README
 
 **Acceptance criteria**
