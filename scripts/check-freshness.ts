@@ -12,6 +12,7 @@ import {
   annotate,
   downloadLiveFile,
   LIVE_CACHE_PATH,
+  isSampleFile,
   resolveProductionUrl,
   setGithubOutput,
 } from './lib/live-data'
@@ -25,6 +26,11 @@ async function main(): Promise<void> {
   const live = await downloadLiveFile(productionUrl)
   if (!live) {
     console.log('No live data file yet (first run). Continuing.')
+    setGithubOutput('fresh', 'false')
+    return
+  }
+  if (isSampleFile(live.file)) {
+    console.log('Production is serving the sample file (no real data yet). Continuing.')
     setGithubOutput('fresh', 'false')
     return
   }
