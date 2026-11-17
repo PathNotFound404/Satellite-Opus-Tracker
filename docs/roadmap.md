@@ -34,7 +34,7 @@ Set up the project and ship the first visible result.
 - [x] Holds 60fps on a mid-range laptop.
 - [ ] CI runs on a PR and blocks merge on failure (branch protection on `main`, see [ci-cd.md](ci-cd.md#branch-protection)). _(CI runs on every PR. Branch protection still needs the owner to enable it.)_
 - [ ] Merging to `main` deploys to the production URL; PRs get a preview URL. _(Waiting on the Vercel project.)_
-- [ ] README shows the CI badge and the live link. _(Badge done. Live link waiting on Vercel.)_
+- [x] README shows the CI badge and the live link.
 
 ## M2: Data pipeline
 
@@ -164,7 +164,7 @@ Scope: close approaches between the **selected satellite** and the rest of the c
 ## M7: Polish and README
 
 **Acceptance criteria**
-- [x] README: what it is, live link, GIF, how it works (pipeline + SGP4 + rendering), tech stack, local setup, data attribution to CelesTrak, accuracy note. _(Live link: placeholder until the Vercel URL exists.)_
+- [x] README: what it is, live link, GIF, how it works (pipeline + SGP4 + rendering), tech stack, local setup, data attribution to CelesTrak, accuracy note.
 - [ ] Lighthouse performance check on the live site, with any large issues fixed. _(Run locally on the production build: desktop 89/100/100/100, mobile performance ~50. Repeat on the live site once deployed.)_
 - [x] Loading and error states: data load failure, WebGL unavailable.
 - [x] Docs (`architecture.md`, ADRs, `ci-cd.md`) match what was built.
