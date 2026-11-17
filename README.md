@@ -63,9 +63,9 @@ Measured in Edge on a desktop with a GTX 1050 Ti, full catalogue:
 - **60 fps** steady (p95 frame 16.8 ms), including at 1000x and with day/night shading.
 - No per-frame allocations in app code (checked with the heap profiler).
 - Click picking about 1 ms, search about 1 ms per keystroke, a 24 h pass search about 4 ms.
-- Lighthouse, desktop: performance 89, accessibility 100, best practices 100, SEO 100.
+- Lighthouse on the live site, desktop: performance 95, accessibility 100, best practices 100, SEO 100.
 
-On Lighthouse's mobile profile (slow 4G, 4× CPU slowdown) performance is about 50. Phones get 2K textures instead of 4K. What remains is the 1 MB (gzipped) satellite file and three.js start-up, the cost of showing the whole catalogue.
+On Lighthouse's mobile profile (slow 4G, 4× CPU slowdown) performance is 61. Phones get 2K textures instead of 4K. What remains is the 1 MB (gzipped) satellite file and three.js start-up, the cost of showing the whole catalogue.
 
 ## Tech stack
 

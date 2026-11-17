@@ -33,7 +33,7 @@ Set up the project and ship the first visible result.
 - [x] `npm ci && npm run dev` shows a textured Earth that can be rotated and zoomed.
 - [x] Holds 60fps on a mid-range laptop.
 - [ ] CI runs on a PR and blocks merge on failure (branch protection on `main`, see [ci-cd.md](ci-cd.md#branch-protection)). _(CI runs on every PR. Branch protection still needs the owner to enable it.)_
-- [ ] Merging to `main` deploys to the production URL; PRs get a preview URL. _(Waiting on the Vercel project.)_
+- [x] Merging to `main` deploys to the production URL; PRs get a preview URL.
 - [x] README shows the CI badge and the live link.
 
 ## M2: Data pipeline
@@ -50,10 +50,10 @@ Get real orbital data onto the live site without the browser ever calling CelesT
 - App loads the JSON once at startup and shows the data's age (`generatedAt`).
 
 **Acceptance criteria**
-- [ ] The scheduled workflow runs at least twice on its own and the live site's `generatedAt` updates. _(Waiting on Vercel secrets and `PRODUCTION_URL`. The workflow skips until then.)_
+- [ ] The scheduled workflow runs at least twice on its own and the live site's `generatedAt` updates. _(Pipeline verified with a manual run on 2026-11-17 (fetch, validate, deploy). Waiting for two scheduled runs.)_
 - [x] Requests follow every rule in [CelesTrak fair use](ci-cd.md#celestrak-fair-use): at most one download of each group per 2-hour update, stop on the first non-200, no retries.
 - [ ] A forced failure (bad URL, empty response, too few records) leaves the live data unchanged. Tested by unit tests on the validator and by one manual run. _(Unit tests done. Manual run waiting on Vercel.)_
-- [ ] A normal push to `main` deploys with the current live data, not the sample. _(Waiting on Vercel.)_
+- [x] A normal push to `main` deploys with the current live data, not the sample. _(Verified 2026-11-17: after PR #13's Vercel build, production still served the 20:33Z CelesTrak data.)_
 - [x] The UI shows "Data updated X hours ago".
 - [x] Generated data is never committed (`public/data/satellites.json` is in `.gitignore`).
 
@@ -165,6 +165,6 @@ Scope: close approaches between the **selected satellite** and the rest of the c
 
 **Acceptance criteria**
 - [x] README: what it is, live link, GIF, how it works (pipeline + SGP4 + rendering), tech stack, local setup, data attribution to CelesTrak, accuracy note.
-- [ ] Lighthouse performance check on the live site, with any large issues fixed. _(Run locally on the production build: desktop 89/100/100/100, mobile performance ~50. Repeat on the live site once deployed.)_
+- [x] Lighthouse performance check on the live site, with any large issues fixed. _(2026-11-17: desktop 95/100/100/100, mobile 61/100/100/100. Mobile is bounded by the 1 MB satellite file and three.js start-up.)_
 - [x] Loading and error states: data load failure, WebGL unavailable.
 - [x] Docs (`architecture.md`, ADRs, `ci-cd.md`) match what was built.
