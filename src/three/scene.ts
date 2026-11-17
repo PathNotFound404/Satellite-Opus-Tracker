@@ -31,7 +31,8 @@ export class SceneController {
   readonly renderer: WebGLRenderer
   readonly controls: OrbitControls
   private readonly globe: Globe
-  private readonly frameCallbacks = new Set<FrameCallback>()
+  // An array, not a Set: iterating it each frame allocates no iterator.
+  private readonly frameCallbacks: FrameCallback[] = []
   private readonly resizeObserver: ResizeObserver
   private readonly container: HTMLElement
 
@@ -94,8 +95,11 @@ export class SceneController {
   }
 
   onFrame(callback: FrameCallback): () => void {
-    this.frameCallbacks.add(callback)
-    return () => this.frameCallbacks.delete(callback)
+    this.frameCallbacks.push(callback)
+    return () => {
+      const i = this.frameCallbacks.indexOf(callback)
+      if (i >= 0) this.frameCallbacks.splice(i, 1)
+    }
   }
 
   stopAutoRotate(): void {
@@ -107,7 +111,7 @@ export class SceneController {
     const distance = this.camera.position.length()
     this.controls.rotateSpeed = Math.min(1, Math.max(0.08, (distance - 1) / 2.5))
     this.controls.update()
-    for (const callback of this.frameCallbacks) callback(nowMs)
+    for (let i = 0; i < this.frameCallbacks.length; i++) this.frameCallbacks[i]!(nowMs)
     this.renderer.render(this.scene, this.camera)
   }
 
@@ -125,7 +129,7 @@ export class SceneController {
     this.resizeObserver.disconnect()
     this.controls.dispose()
     this.globe.dispose()
-    this.frameCallbacks.clear()
+    this.frameCallbacks.length = 0
     this.renderer.dispose()
     this.renderer.domElement.remove()
   }

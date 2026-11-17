@@ -53,9 +53,11 @@ src/
   types/        data contract types (SatelliteFile, OmmRecord, ...)
   orbital/      pure TS: satrec creation, propagation, TEME->ECF, altitude,
                 speed, look angles, pass prediction. No Vue, no three.js.
-  three/        scene, camera, controls, globe, point cloud, orbit line,
-                picking, unit conversion (km -> scene units)
-  composables/  useSatellites (load + index data), useSelection,
+  three/        scene, camera, controls, globe, point cloud, keyframe
+                timeline, orbit line, picking, unit conversion (km -> scene)
+  workers/      propagation worker (SGP4 for the whole catalog)
+  utils/        formatting, simulation clock
+  composables/  useSatelliteData (load), useSatelliteLayer, useSelection,
                 useSimClock, useFilters
   components/   InfoPanel, SearchBox, GroupFilter, DataAgeBadge, ...
   App.vue
@@ -70,11 +72,11 @@ src/
 
 ## Data flow at runtime
 
-1. **Load:** `useSatellites` fetches `/data/satellites.json` once, checks `schemaVersion`, and builds `satrec`s from the OMM records. Records that fail to parse are dropped and counted.
+1. **Load:** `useSatelliteData` fetches `/data/satellites.json` once, checks `schemaVersion`, and builds `satrec`s from the OMM records. Records that fail to parse are dropped and counted.
 2. **Index:** keep satellites in plain arrays indexed by a stable position `i`. That index is shared by the satrec array, the position buffer, the filter mask and picking. Groups are resolved to index sets once.
 3. **Clock:** `useSimClock` is the single source of simulation time (real time at 1x until time controls land).
-4. **Propagate:** for each satellite, `propagate(satrec, simTime)` → TEME position (km) → ECF via GMST → scene units → written into the shared `Float32Array`. Failures hide that point (see below).
-5. **Render:** one `THREE.Points` with a `BufferGeometry` whose position attribute uses that array. Set `needsUpdate` once per update.
+4. **Propagate (worker, 1 Hz):** for each satellite, `sgp4(satrec, t)` → TEME position (km) → ECF via GMST → scene units → `[x, y, z, valid]` in a transferred `Float32Array` keyframe. Failures set `valid = 0` (see below). See [ADR 0002](adr/0002-propagation-strategy.md).
+5. **Render:** one `THREE.Points` whose vertex shader interpolates between the previous and next keyframes with one `uMix` uniform. Each keyframe is uploaded once; per frame the main thread writes one uniform.
 6. **Select:** a click is raycast against the points; the hit index maps back to the satellite. The info panel reads altitude, speed and inclination from `orbital/` helpers for that one satellite.
 
 ## Frames, units and constants
@@ -95,18 +97,13 @@ Because positions are converted to ECF, the Earth mesh does not rotate with time
 
 ## Propagation strategy (decided in M3)
 
-The starting point is to propagate every satellite on the main thread, writing into a reused `Float32Array`. In M3 we measure frame time with the full catalog. If propagation costs too much of the 16.6 ms frame budget, the options in order of preference:
-
-1. **Lower-rate propagation with interpolation:** propagate each satellite at, e.g., 1–4 Hz (spread across frames) and interpolate positions between samples.
-2. **Web Worker:** move propagation to a worker, transferring a typed array each tick.
-
-The result goes in `docs/adr/0002-propagation-strategy.md`.
+A full SGP4 pass over the catalog takes 14–23 ms in JS, too much for the main thread every frame. Propagation runs in a Web Worker at 1 Hz and the GPU interpolates between keyframes. Measurements and trade-offs are in [ADR 0002](adr/0002-propagation-strategy.md).
 
 ## Invalid and decayed satellites
 
 - satellite.js can return `false` or a position containing `NaN` for decayed or bad elements.
-- Such satellites are marked invalid: their point is moved out of view (or masked in the shader), never left at the origin or the last good position.
-- They're excluded from search results and counted in a debug readout.
+- Such satellites are marked invalid (`valid = 0` in the keyframe): the vertex shader moves the point outside the clip volume, so it's never drawn at the origin or at the last good position.
+- They're excluded from search results and counted in the debug readout (add `?debug` to the URL).
 
 ## Picking
 
