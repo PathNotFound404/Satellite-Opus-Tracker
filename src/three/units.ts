@@ -20,7 +20,7 @@ export function ecfKmToScene(
   xKm: number,
   yKm: number,
   zKm: number,
-  out: Float32Array | number[],
+  out: Float32Array | Float64Array | number[],
   offset = 0,
 ): void {
   out[offset] = xKm * KM_TO_SCENE
@@ -33,7 +33,7 @@ export function latLonToScene(
   latDeg: number,
   lonDeg: number,
   radius: number,
-  out: Float32Array | number[],
+  out: Float32Array | Float64Array | number[],
   offset = 0,
 ): void {
   const lat = (latDeg * Math.PI) / 180

@@ -8,7 +8,9 @@ import GroupFilter from './components/GroupFilter.vue'
 import InfoPanel from './components/InfoPanel.vue'
 import SearchBox from './components/SearchBox.vue'
 import TimeControls from './components/TimeControls.vue'
+import ToggleRow from './components/ToggleRow.vue'
 import { useFilters } from './composables/useFilters'
+import { useLighting } from './composables/useLighting'
 import { useSatelliteData } from './composables/useSatelliteData'
 import { useSatelliteLayer } from './composables/useSatelliteLayer'
 import { useSelection } from './composables/useSelection'
@@ -24,6 +26,7 @@ const isSample = computed(() => file.value?.source.toLowerCase().includes('sampl
 // Already markRaw'd by GlobeView; shallowRef keeps Vue from walking it.
 const scene = shallowRef<SceneController | null>(null)
 const { layer, stats } = useSatelliteLayer(scene, file)
+const { dayNight } = useLighting(scene)
 const { selectedIndex, selected, live, propagationFailed, select, clear } = useSelection(scene, layer, file)
 const { active: activeFilter, counts, includes: filterIncludes } = useFilters(layer, file)
 
@@ -67,6 +70,8 @@ if (showDebug) {
       </div>
       <SearchBox :index="searchIndex" :include="searchable" @pick="pickFromSearch" />
       <GroupFilter v-model="activeFilter" :counts="counts" />
+      <div class="controls__divider" aria-hidden="true" />
+      <ToggleRow v-model="dayNight" label="Day and night" hint="Sunlight and Earth's shadow at the shown time" />
     </header>
 
     <TimeControls class="time-controls" />
@@ -112,6 +117,11 @@ if (showDebug) {
   position: relative;
   height: 100%;
   overflow: hidden;
+}
+
+.controls__divider {
+  height: 0;
+  border-top: var(--hairline);
 }
 
 .controls {

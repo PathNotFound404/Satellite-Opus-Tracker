@@ -7,6 +7,7 @@ import {
   RawShaderMaterial,
 } from 'three'
 import { KEYFRAME_STRIDE } from '../workers/propagation-protocol'
+import type { Lighting } from './lighting'
 
 /**
  * Every satellite in one THREE.Points draw call.
@@ -27,7 +28,7 @@ export class SatellitePoints {
   /** False until the first keyframe pair is on screen. */
   hasKeyframes = false
 
-  constructor(count: number, options: { color: string; pixelRatio: number }) {
+  constructor(count: number, options: { color: string; pixelRatio: number; lighting: Lighting }) {
     this.count = count
     this.geometry = new BufferGeometry()
     this.prevAttr = new BufferAttribute(new Float32Array(count * KEYFRAME_STRIDE), KEYFRAME_STRIDE)
@@ -46,6 +47,8 @@ export class SatellitePoints {
         uPixelRatio: { value: options.pixelRatio },
         uColor: { value: new Color(options.color) },
         uOpacity: { value: 0.9 },
+        uSunDir: options.lighting.sunDirection,
+        uShading: options.lighting.shading,
       },
       vertexShader: /* glsl */ `
         precision highp float;
@@ -54,17 +57,28 @@ export class SatellitePoints {
         uniform float uMix;
         uniform float uSize;
         uniform float uPixelRatio;
+        uniform vec3 uSunDir;
+        uniform float uShading;
         in vec4 position; // next keyframe: xyz scene units, w = valid
         in vec4 aPrev;    // previous keyframe
         in float aMask;   // filter visibility
+        out float vLight;
         void main() {
           if (position.w * aPrev.w * aMask < 0.5) {
             // Hidden: put it outside the clip volume so it's never rasterised.
             gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
             gl_PointSize = 0.0;
+            vLight = 0.0;
             return;
           }
           vec3 p = mix(aPrev.xyz, position.xyz, uMix);
+          // Cylindrical Earth shadow: behind the Earth (away from the Sun)
+          // and within one Earth radius of the Sun-Earth axis. Eclipsed
+          // satellites are dimmed when day/night shading is on.
+          float along = dot(p, uSunDir);
+          float offAxisSq = dot(p, p) - along * along;
+          float eclipsed = (along < 0.0 && offAxisSq < 1.0) ? 1.0 : 0.0;
+          vLight = 1.0 - 0.7 * eclipsed * uShading;
           vec4 mv = modelViewMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * mv;
           // Slightly larger when close, never below ~1.5 px.
@@ -75,12 +89,13 @@ export class SatellitePoints {
         precision highp float;
         uniform vec3 uColor;
         uniform float uOpacity;
+        in float vLight;
         out vec4 fragColor;
         void main() {
           float d = length(gl_PointCoord - 0.5);
           float a = 1.0 - smoothstep(0.3, 0.5, d);
           if (a <= 0.0) discard;
-          fragColor = vec4(uColor, a * uOpacity);
+          fragColor = vec4(uColor, a * uOpacity * vLight);
         }
       `,
       transparent: true,

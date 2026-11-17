@@ -18,7 +18,10 @@ onMounted(() => {
   try {
     controller = markRaw(
       new SceneController(container.value, {
-        textureUrl: `${import.meta.env.BASE_URL}textures/earth-blue-marble.jpg`,
+        textures: {
+          day: `${import.meta.env.BASE_URL}textures/earth-blue-marble.jpg`,
+          night: `${import.meta.env.BASE_URL}textures/earth-night.jpg`,
+        },
         reducedMotion,
         onGlobeReady: () => {
           globeLoaded.value = true
