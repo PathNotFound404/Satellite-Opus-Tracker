@@ -13,7 +13,7 @@ Thousands of real satellites moving in real time on an interactive 3D globe. Orb
 | 1. Scaffold, globe, CI | Done |
 | 2. Data pipeline | Done (deploy pending) |
 | 3. Propagate and plot | Done |
-| 4. Select, info panel, orbit | Planned |
+| 4. Select, info panel, orbit | Done |
 | 5. Search and filters | Planned |
 
 See [docs/roadmap.md](docs/roadmap.md).

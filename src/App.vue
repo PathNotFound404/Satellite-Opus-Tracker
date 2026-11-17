@@ -3,8 +3,10 @@ import { computed, ref, shallowRef } from 'vue'
 import DataAgeBadge from './components/DataAgeBadge.vue'
 import DebugReadout from './components/DebugReadout.vue'
 import GlobeView from './components/GlobeView.vue'
+import InfoPanel from './components/InfoPanel.vue'
 import { useSatelliteData } from './composables/useSatelliteData'
 import { useSatelliteLayer } from './composables/useSatelliteLayer'
+import { useSelection } from './composables/useSelection'
 import type { SceneController } from './three/scene'
 
 const fatalError = ref<string | null>(null)
@@ -15,8 +17,14 @@ const isSample = computed(() => file.value?.source.toLowerCase().includes('sampl
 
 // Already markRaw'd by GlobeView; shallowRef keeps Vue from walking it.
 const scene = shallowRef<SceneController | null>(null)
-const { stats } = useSatelliteLayer(scene, file)
+const { layer, stats } = useSatelliteLayer(scene, file)
+const { selected, live, propagationFailed, select, clear } = useSelection(scene, layer, file)
 const showDebug = new URLSearchParams(window.location.search).has('debug')
+
+// ?debug only: a handle for manual checks and automated browser tests.
+if (showDebug) {
+  ;(window as unknown as { __satDebug: unknown }).__satDebug = { scene, layer, file, select }
+}
 </script>
 
 <template>
@@ -43,6 +51,17 @@ const showDebug = new URLSearchParams(window.location.search).has('debug')
         <button class="status__retry" type="button" @click="reload()">Try again</button>
       </div>
     </footer>
+
+    <aside class="side">
+      <InfoPanel
+        v-if="selected"
+        :key="selected.index"
+        :satellite="selected"
+        :live="live"
+        :propagation-failed="propagationFailed"
+        @close="clear()"
+      />
+    </aside>
 
     <DebugReadout v-if="showDebug" class="debug" :stats="stats" />
 
@@ -112,10 +131,20 @@ const showDebug = new URLSearchParams(window.location.search).has('debug')
   cursor: pointer;
 }
 
-.debug {
+.side {
   position: absolute;
   top: var(--edge-gap);
   right: var(--edge-gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: calc(100% - 2 * var(--edge-gap));
+}
+
+.debug {
+  position: absolute;
+  right: var(--edge-gap);
+  bottom: var(--edge-gap);
 }
 
 .fatal {
