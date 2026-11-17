@@ -107,7 +107,7 @@ On `main`: require a PR, require the `ci` check to pass, no force pushes. Set th
 **Steps:**
 
 1. **Setup:** checkout, Node from `.nvmrc`, `npm ci`.
-2. **Freshness guard:** download the live `satellites.json`. If its `generatedAt` is less than 2 hours old, end the run as skipped. If the live file is missing (first ever run), continue.
+2. **Freshness guard** (`npm run check-freshness`): download the live `satellites.json` and cache it in `.cache/` for the count comparison. If its `generatedAt` is less than 2 hours old, end the run as skipped. If the live file is missing (first ever run), continue.
 3. **Fetch** (`npm run fetch-data`): request `active`, `stations`, `gps-ops`, `weather` one at a time.
    - The "not updated since your last download" 403 → stop, skip (warning), success exit, no deploy.
    - Any other non-200 → stop, fail the run, no deploy.

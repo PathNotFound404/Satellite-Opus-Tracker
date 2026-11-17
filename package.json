@@ -8,11 +8,14 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "tsx scripts/pull-live-data.ts",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "vue-tsc --build",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "fetch-data": "tsx scripts/fetch-data.ts",
+    "check-freshness": "tsx scripts/check-freshness.ts"
   },
   "dependencies": {
     "satellite.js": "7.2.0",

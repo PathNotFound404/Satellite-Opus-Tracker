@@ -17,6 +17,7 @@
   --color-text-tertiary: rgba(235, 235, 245, 0.5);
   --color-accent: #0a84ff;
   --color-accent-soft: rgba(10, 132, 255, 0.18);
+  --color-success: #30d158;
   --color-warning: #ff9f0a;
   --color-danger: #ff453a;
   --color-focus-ring: rgba(10, 132, 255, 0.6);

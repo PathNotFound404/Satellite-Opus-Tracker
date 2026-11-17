@@ -43,6 +43,7 @@ Package manager: npm. Update this table whenever scripts change.
 | Type check | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Fetch data locally | `npm run fetch-data` |
+| Freshness guard (workflow) | `npm run check-freshness` |
 
 Before calling any task done, `typecheck`, `lint`, `test` and `build` must all pass.
 
@@ -60,6 +61,8 @@ src/
   orbital/           Pure functions around satellite.js: propagation, frame
                      conversion, look angles, pass prediction
   types/             Shared TypeScript types, including the data contract
+  utils/             Small pure helpers (formatting)
+  styles/            Design tokens and base styles
   App.vue
   main.ts
 ```
