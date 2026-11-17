@@ -77,7 +77,7 @@ src/
 3. **Clock:** `useSimClock` is the single source of simulation time (real time at 1x until time controls land).
 4. **Propagate (worker, 1 Hz):** for each satellite, `sgp4(satrec, t)` → TEME position (km) → ECF via GMST → scene units → `[x, y, z, valid]` in a transferred `Float32Array` keyframe. Failures set `valid = 0` (see below). See [ADR 0002](adr/0002-propagation-strategy.md).
 5. **Render:** one `THREE.Points` whose vertex shader interpolates between the previous and next keyframes with one `uMix` uniform. Each keyframe is uploaded once; per frame the main thread writes one uniform.
-6. **Select:** a click is raycast against the points; the hit index maps back to the satellite. The info panel reads altitude, speed and inclination from `orbital/` helpers for that one satellite.
+6. **Select:** a click (not a drag) is matched to the nearest visible point on screen; the hit index maps back to the satellite. The info panel propagates that one satellite on the main thread 4 times a second for exact altitude and speed. The orbit line is one period sampled in TEME and drawn in a group rotated by −GMST each frame, so it always passes through the satellite.
 
 ## Frames, units and constants
 
@@ -107,7 +107,7 @@ A full SGP4 pass over the catalog takes 14–23 ms in JS, too much for the main 
 
 ## Picking
 
-- `THREE.Raycaster` with a points threshold scaled to camera distance. This is O(n) per click, which is fine for 10k points on click events.
+- Screen-space nearest point within 12 CSS px (`three/picking.ts`), using the same keyframe interpolation as the shader. Points hidden behind the Earth (ray–sphere test) or by filters are skipped. A drag never counts as a click. O(n) per click: about 1 ms for 16,892 points.
 - Hover highlighting (if added) would need a cheaper method (throttling or GPU color-ID picking). Decide when needed.
 
 ## Accuracy and data age
