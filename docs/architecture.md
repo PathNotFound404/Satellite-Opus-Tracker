@@ -117,6 +117,12 @@ A full SGP4 pass over the catalog takes 14–23 ms in JS, too much for the main 
 - The globe shader blends the day texture (lit by the solar zenith angle) and a city-lights night texture across a soft twilight band. With shading off, it uses an even key light.
 - The satellite shader dims points inside Earth's cylindrical shadow.
 
+## Pass prediction
+
+- `orbital/passes.ts` scans elevation every 30 s over 24 h for one satellite, bisects horizon crossings (under 1 s) and finds the peak by golden-section search. It works from a WGS84 station with an east/north/up frame. About 4 ms for the ISS, run on the main thread only when the satellite, location or time window changes.
+- "Visible" = satellite outside Earth's cylindrical shadow and the Sun below −6° at the observer, at the peak.
+- The observer location is kept in `localStorage` only (rounded to 0.01°). It never leaves the browser.
+
 ## Accuracy and data age
 
 - GP/SGP4 accuracy is on the order of a kilometer at epoch and degrades over days. The UI never shows more than 1 decimal place of km and never implies sub-kilometer accuracy.
