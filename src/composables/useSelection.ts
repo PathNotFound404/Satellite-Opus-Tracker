@@ -101,6 +101,7 @@ export function useSelection(
       selectionLayer = markRaw(
         new SelectionLayer(s, l, clock, {
           color: cssToken('--color-sat-selected', '#0a84ff'),
+          trackColor: cssToken('--color-ground-track', '#f5f5f7'),
           pixelRatio: s.renderer.getPixelRatio(),
         }),
       )

@@ -13,6 +13,7 @@ import { sampleOrbitTeme } from '../orbital/orbit'
 import { periodMinutes, type SatRec } from '../orbital/propagate'
 import { gmstAt } from '../orbital/time'
 import type { SimClock } from '../utils/sim-clock'
+import { GroundTrack } from './ground-track'
 import type { SatelliteLayer } from './satellite-layer'
 import type { SceneController } from './scene'
 import { ecfKmToScene } from './units'
@@ -22,7 +23,7 @@ const ORBIT_SAMPLES = 256
 const ORBIT_RESAMPLE_MS = 60_000
 
 /**
- * Highlight ring on the selected satellite plus its orbit line.
+ * Highlight ring on the selected satellite, its orbit line and its ground track.
  *
  * The orbit is the inertial ellipse: one period of TEME positions, drawn in a
  * group rotated about the polar axis by -GMST(now) each frame. That is the
@@ -42,6 +43,7 @@ export class SelectionLayer {
   private readonly marker: Points
   private readonly markerPosition = new Float32Array(3)
   private readonly scratch = new Vector3()
+  private readonly groundTrack: GroundTrack
   private readonly unsubscribe: () => void
 
   private index = -1
@@ -53,7 +55,7 @@ export class SelectionLayer {
     private readonly scene: SceneController,
     private readonly satellites: SatelliteLayer,
     private readonly clock: SimClock,
-    options: { color: string; pixelRatio: number },
+    options: { color: string; trackColor: string; pixelRatio: number },
   ) {
     const color = new Color(options.color)
 
@@ -99,6 +101,10 @@ export class SelectionLayer {
     this.marker.visible = false
     scene.add(this.marker)
 
+    // Neutral white so the surface track reads as distinct from the accent-blue orbit.
+    this.groundTrack = new GroundTrack(options.trackColor)
+    scene.add(this.groundTrack.group)
+
     this.unsubscribe = scene.onFrame(this.onFrame)
   }
 
@@ -108,6 +114,7 @@ export class SelectionLayer {
     this.satrec = satrec
     this.periodMin = periodMinutes(meanMotionRevPerDay)
     this.sampledAtMs = Number.NaN
+    this.groundTrack.setSatellite(satrec, this.periodMin)
     if (this.index < 0) {
       this.orbitGroup.visible = false
       this.marker.visible = false
@@ -147,8 +154,10 @@ export class SelectionLayer {
       this.markerPosition[2] = this.scratch.z
       ;(this.markerGeometry.attributes.position as BufferAttribute).needsUpdate = true
       this.marker.visible = true
+      this.groundTrack.update(simMs, this.scratch)
     } else {
       this.marker.visible = false
+      this.groundTrack.update(simMs, null)
     }
   }
 
@@ -156,6 +165,8 @@ export class SelectionLayer {
     this.unsubscribe()
     this.scene.remove(this.orbitGroup)
     this.scene.remove(this.marker)
+    this.scene.remove(this.groundTrack.group)
+    this.groundTrack.dispose()
     this.orbitGeometry.dispose()
     this.orbitMaterial.dispose()
     this.markerGeometry.dispose()
