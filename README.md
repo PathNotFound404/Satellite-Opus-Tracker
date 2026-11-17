@@ -4,7 +4,7 @@
 
 Every active satellite, about 17,000 of them, moving in real time on an interactive 3D globe. Orbital data comes from CelesTrak, and every position is computed in your browser with SGP4. No backend, no paid services.
 
-**Live site:** _coming soon_ <!-- Replace with the Vercel production URL once the project is connected. -->
+**Live site: [satellite-opus-tracker.vercel.app](https://satellite-opus-tracker.vercel.app)** · data refreshed from CelesTrak every 6 hours
 
 ![Demo: searching for the ISS, its orbit and ground track at 100x, then the Starlink filter](docs/media/demo.gif)
 
