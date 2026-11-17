@@ -76,6 +76,25 @@ describe('KeyframeTimeline', () => {
   it('widens spacing at higher rates, up to a cap', () => {
     expect(KeyframeTimeline.spacingMs(1)).toBe(1000)
     expect(KeyframeTimeline.spacingMs(10)).toBe(10_000)
+    expect(KeyframeTimeline.spacingMs(-10)).toBe(10_000)
     expect(KeyframeTimeline.spacingMs(1000)).toBe(MAX_KEYFRAME_SIM_MS)
+  })
+
+  it('runs backwards for negative rates', () => {
+    const { timeline, requests, answerAll } = setup()
+    timeline.reset(100_000, -10)
+    expect(requests.map((r) => r.timeMs)).toEqual([100_000, 90_000])
+    answerAll()
+    expect(timeline.advance(95_000, -10)).toBeCloseTo(0.5)
+    expect(requests.map((r) => r.timeMs)).toEqual([80_000])
+    answerAll()
+    expect(timeline.advance(85_000, -10)).toBeCloseTo(0.5)
+    expect(timeline.prevKeyframe!.timeMs).toBe(90_000)
+  })
+
+  it('starts the new pair ahead of the clock by the lead time', () => {
+    const { timeline, requests } = setup()
+    timeline.reset(0, 100, 50)
+    expect(requests.map((r) => r.timeMs)).toEqual([5000, 65_000])
   })
 })

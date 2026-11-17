@@ -112,6 +112,16 @@ Proposed order, easiest and most visible first. Reorder freely.
 
 Each stretch feature needs its own acceptance criteria written before work starts.
 
+### M6.1 Time controls: acceptance criteria
+
+- [x] Pause and resume; the simulation time freezes and resumes from the same moment.
+- [x] Rates of 1x, 10x, 100x and 1000x forwards and backwards (rewind), changed from on-screen controls and the keyboard (Space, `[` and `]`).
+- [x] "Now" returns to real time at 1x.
+- [x] The current simulation time (UTC) and rate are always visible; a non-live state is obvious.
+- [x] Satellites, the selected satellite's panel values and its orbit line all follow simulation time.
+- [x] 60 fps holds at 1000x forwards and backwards with the full catalog, with no flicker when changing rate.
+- [x] Controls are keyboard reachable and labelled for screen readers.
+
 ## M7: Polish and README
 
 **Acceptance criteria**

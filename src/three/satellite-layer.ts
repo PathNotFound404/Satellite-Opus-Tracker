@@ -23,7 +23,7 @@ export class SatelliteLayer {
   private readonly timeline: KeyframeTimeline
   private ready = false
   private lastClockEpoch: number
-  private lastRateSign: number
+  private lastRate: number
   private mix = 0
   private readonly unsubscribe: () => void
   readonly stats: PropagationStats
@@ -48,7 +48,7 @@ export class SatelliteLayer {
       this.post({ type: 'keyframe', id, timeMs, buffer }, [buffer.buffer])
     })
     this.lastClockEpoch = clock.epoch
-    this.lastRateSign = Math.sign(clock.rate)
+    this.lastRate = clock.rate
 
     this.worker.onmessage = (event: MessageEvent<FromWorker>) => {
       const msg = event.data
@@ -78,31 +78,35 @@ export class SatelliteLayer {
   private readonly onFrame = (): void => {
     if (!this.ready) return
     const simMs = this.clock.now()
-    const rate = this.clock.rate
-    const rateSign = Math.sign(rate)
-    if (this.clock.epoch !== this.lastClockEpoch || rateSign !== this.lastRateSign) {
+    // Paused: the clock is frozen, so treat the rate as 0 for scheduling.
+    const rate = this.clock.paused ? 0 : this.clock.rate
+    if (this.clock.epoch !== this.lastClockEpoch || rate !== this.lastRate) {
       this.lastClockEpoch = this.clock.epoch
-      this.lastRateSign = rateSign
-      this.timeline.reset(simMs, rate)
+      const wasPause = rate === 0 || this.lastRate === 0
+      this.lastRate = rate
+      // Pausing or resuming keeps the current pair (time didn't jump).
+      if (!wasPause) this.timeline.reset(simMs, rate, this.resetLeadMs())
     }
 
     let t = this.timeline.advance(simMs, rate)
     if (t === NEEDS_RESET) {
-      this.timeline.reset(simMs, rate)
+      this.timeline.reset(simMs, rate, this.resetLeadMs())
       t = NOT_READY
     }
-    if (t === NOT_READY) {
-      // After a reset the old keyframe buffers are inside the worker
-      // (transferred, so detached here). Hide until a fresh pair arrives.
-      this.points.object.visible = false
-      return
-    }
+    // While a new pair is computed, the GPU keeps drawing the last uploaded
+    // keyframes (the CPU copies are in the worker), so nothing flickers.
+    if (t === NOT_READY) return
 
     const prev = this.timeline.prevKeyframe!
     const next = this.timeline.nextKeyframe!
     this.points.setKeyframes(prev.buffer, next.buffer)
     this.mix = t
     this.points.setMix(t)
+  }
+
+  /** Expected wall time for the worker to return a fresh pair. */
+  private resetLeadMs(): number {
+    return 2 * Math.max(this.stats.lastPropagateMs, 10) + 20
   }
 
   private post(message: ToWorker, transfer: Transferable[] = []): void {

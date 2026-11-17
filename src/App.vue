@@ -7,6 +7,7 @@ import GlobeView from './components/GlobeView.vue'
 import GroupFilter from './components/GroupFilter.vue'
 import InfoPanel from './components/InfoPanel.vue'
 import SearchBox from './components/SearchBox.vue'
+import TimeControls from './components/TimeControls.vue'
 import { useFilters } from './composables/useFilters'
 import { useSatelliteData } from './composables/useSatelliteData'
 import { useSatelliteLayer } from './composables/useSatelliteLayer'
@@ -67,6 +68,8 @@ if (showDebug) {
       <SearchBox :index="searchIndex" :include="searchable" @pick="pickFromSearch" />
       <GroupFilter v-model="activeFilter" :counts="counts" />
     </header>
+
+    <TimeControls class="time-controls" />
 
     <footer class="status">
       <DataAgeBadge
@@ -177,12 +180,28 @@ if (showDebug) {
   max-height: calc(100% - 2 * var(--edge-gap));
 }
 
-/* Narrow screens: the info panel becomes a sheet above the status pill. */
+.time-controls {
+  position: absolute;
+  left: 50%;
+  bottom: var(--edge-gap);
+  transform: translateX(-50%);
+}
+
+/* Not enough room for both bottom pills side by side: stack time above status. */
+@media (max-width: 1100px) {
+  .time-controls {
+    left: var(--edge-gap);
+    transform: none;
+    bottom: calc(var(--edge-gap) + 48px);
+  }
+}
+
+/* Narrow screens: the info panel becomes a sheet above the bottom pills. */
 @media (max-width: 720px) {
   .side {
     top: auto;
     left: var(--edge-gap);
-    bottom: calc(var(--edge-gap) + 48px);
+    bottom: calc(var(--edge-gap) + 104px);
   }
 
   .side :deep(.info) {

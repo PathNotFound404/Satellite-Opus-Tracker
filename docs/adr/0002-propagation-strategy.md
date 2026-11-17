@@ -30,7 +30,9 @@ The worker uses the plain JS `sgp4()`, not the WASM `BulkPropagator`. At about 1
 
 Linear interpolation between two Earth-fixed points 1 s apart cuts the corner of the arc. For LEO (7.6 km/s, r ≈ 6,800 km) the arc spans θ ≈ 1.1 mrad and the error is about r·θ²/8 ≈ 1 m. That is negligible next to SGP4's own kilometre-level error.
 
-At faster time rates (M6), keyframe spacing grows to `1 s × rate`, capped at 30 s of simulation time. At the cap the LEO interpolation error is about 1 km, still below SGP4 accuracy and invisible on screen. Beyond that rate the worker simply produces keyframes more often in wall time (30 s at 1000x is 33 per second, about 50% of one worker thread). If that turns out to be too much, the next step is Hermite interpolation using the velocities.
+At faster time rates (M6.1), keyframe spacing grows to `1 s × rate`, capped at 60 s of simulation time. At the cap, LEO interpolation error is about r·θ²/8 ≈ 4 km (θ ≈ 0.067 rad). That is under one pixel at the default zoom, where a pixel spans 10–20 km. Beyond 60x, the worker produces keyframes more often in wall time: at 1000x that's about 17 per second, roughly 25–35% of one worker thread. If a future feature needs higher rates or close-up accuracy at speed, the next step is Hermite interpolation using the velocities.
+
+**Rate changes and jumps** reset the timeline. The new pair is requested slightly ahead of the clock (twice the last worker time plus 20 ms, scaled by the rate), so it's still current when it arrives. While it's computed, the GPU keeps drawing the last uploaded keyframes, so nothing flickers. Pausing and resuming keep the current pair. Measured at ±1000x: 60 fps, p95 16.8 ms, and no frames where the points were frozen waiting for the worker.
 
 ### Invalid satellites
 
@@ -49,5 +51,5 @@ The development machine is a desktop with a GTX 1050 Ti, which is about the same
 ## Consequences
 
 - Satellite positions on the CPU are not updated every frame. Anything that needs them (click picking, M4) reads the same interpolation from the keyframe buffers (`SatellitePoints.positionOf`). The selected satellite's info panel propagates that one satellite directly for exact values.
-- The clock (`utils/sim-clock.ts`) bumps an `epoch` on jumps. The layer resets its keyframes then, and hides the points until the new pair is ready (normally one or two frames).
+- The clock (`utils/sim-clock.ts`) bumps an `epoch` on jumps. The layer resets its keyframes on a jump or a rate change and keeps drawing the last pair until the new one is ready (normally one or two frames).
 - Vite builds workers as ES modules (`worker.format: 'es'`), which every current browser supports.
