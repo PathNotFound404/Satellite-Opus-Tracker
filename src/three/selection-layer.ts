@@ -41,6 +41,11 @@ export class SelectionLayer {
   private readonly markerGeometry = new BufferGeometry()
   private readonly markerMaterial: ShaderMaterial
   private readonly marker: Points
+  private readonly secondaryGeometry = new BufferGeometry()
+  private readonly secondaryMaterial: ShaderMaterial
+  private readonly secondary: Points
+  private readonly secondaryPosition = new Float32Array(3)
+  private secondaryIndex = -1
   private readonly markerPosition = new Float32Array(3)
   private readonly scratch = new Vector3()
   private readonly groundTrack: GroundTrack
@@ -55,7 +60,7 @@ export class SelectionLayer {
     private readonly scene: SceneController,
     private readonly satellites: SatelliteLayer,
     private readonly clock: SimClock,
-    options: { color: string; trackColor: string; pixelRatio: number },
+    options: { color: string; trackColor: string; secondaryColor: string; pixelRatio: number },
   ) {
     const color = new Color(options.color)
 
@@ -68,38 +73,21 @@ export class SelectionLayer {
     scene.add(this.orbitGroup)
 
     this.markerGeometry.setAttribute('position', new BufferAttribute(this.markerPosition, 3))
-    this.markerMaterial = new ShaderMaterial({
-      uniforms: {
-        uColor: { value: color },
-        uSize: { value: 22 * options.pixelRatio },
-      },
-      vertexShader: /* glsl */ `
-        uniform float uSize;
-        void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = uSize;
-        }
-      `,
-      fragmentShader: /* glsl */ `
-        uniform vec3 uColor;
-        void main() {
-          float d = length(gl_PointCoord - 0.5) * 2.0;
-          // A ring with a solid centre dot.
-          float ring = smoothstep(0.62, 0.72, d) * (1.0 - smoothstep(0.86, 0.96, d));
-          float dot = 1.0 - smoothstep(0.22, 0.32, d);
-          float a = max(ring, dot);
-          if (a <= 0.0) discard;
-          gl_FragColor = vec4(uColor, a);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-    })
+    this.markerMaterial = ringMaterial(color, 22 * options.pixelRatio)
     this.marker = new Points(this.markerGeometry, this.markerMaterial)
     this.marker.frustumCulled = false
     this.marker.renderOrder = 2
     this.marker.visible = false
     scene.add(this.marker)
+
+    // The other object in a chosen close approach.
+    this.secondaryGeometry.setAttribute('position', new BufferAttribute(this.secondaryPosition, 3))
+    this.secondaryMaterial = ringMaterial(new Color(options.secondaryColor), 18 * options.pixelRatio)
+    this.secondary = new Points(this.secondaryGeometry, this.secondaryMaterial)
+    this.secondary.frustumCulled = false
+    this.secondary.renderOrder = 2
+    this.secondary.visible = false
+    scene.add(this.secondary)
 
     // Neutral white so the surface track reads as distinct from the accent-blue orbit.
     this.groundTrack = new GroundTrack(options.trackColor)
@@ -121,6 +109,12 @@ export class SelectionLayer {
     }
   }
 
+  /** Highlight another satellite (e.g. the other object in a close approach), or -1 for none. */
+  setSecondary(index: number): void {
+    this.secondaryIndex = index
+    if (index < 0) this.secondary.visible = false
+  }
+
   private resampleOrbit(simMs: number): void {
     if (!this.satrec) return
     const written = sampleOrbitTeme(this.satrec, simMs, this.periodMin, ORBIT_SAMPLES, this.orbitTemeKm)
@@ -140,6 +134,15 @@ export class SelectionLayer {
   }
 
   private readonly onFrame = (): void => {
+    if (this.secondaryIndex >= 0 && this.satellites.points.positionOf(this.secondaryIndex, this.satellites.currentMix, this.scratch)) {
+      this.secondaryPosition[0] = this.scratch.x
+      this.secondaryPosition[1] = this.scratch.y
+      this.secondaryPosition[2] = this.scratch.z
+      ;(this.secondaryGeometry.attributes.position as BufferAttribute).needsUpdate = true
+      this.secondary.visible = true
+    } else {
+      this.secondary.visible = false
+    }
     if (this.index < 0) return
     const simMs = this.clock.now()
 
@@ -171,5 +174,35 @@ export class SelectionLayer {
     this.orbitMaterial.dispose()
     this.markerGeometry.dispose()
     this.markerMaterial.dispose()
+    this.scene.remove(this.secondary)
+    this.secondaryGeometry.dispose()
+    this.secondaryMaterial.dispose()
   }
+}
+
+/** Ring with a centre dot, drawn as a screen-space point sprite. */
+function ringMaterial(color: Color, sizePx: number): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: { uColor: { value: color }, uSize: { value: sizePx } },
+    vertexShader: /* glsl */ `
+      uniform float uSize;
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = uSize;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uColor;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        float ring = smoothstep(0.62, 0.72, d) * (1.0 - smoothstep(0.86, 0.96, d));
+        float dot = 1.0 - smoothstep(0.22, 0.32, d);
+        float a = max(ring, dot);
+        if (a <= 0.0) discard;
+        gl_FragColor = vec4(uColor, a);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+  })
 }

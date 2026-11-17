@@ -102,6 +102,7 @@ export function useSelection(
         new SelectionLayer(s, l, clock, {
           color: cssToken('--color-sat-selected', '#0a84ff'),
           trackColor: cssToken('--color-ground-track', '#f5f5f7'),
+          secondaryColor: cssToken('--color-warning', '#ff9f0a'),
           pixelRatio: s.renderer.getPixelRatio(),
         }),
       )
@@ -153,5 +154,12 @@ export function useSelection(
     selectionLayer?.dispose()
   })
 
-  return { selectedIndex, selected, live, propagationFailed, select, clear }
+  /** Highlight a second satellite alongside the selection (close approaches). */
+  const highlighted = ref<number | null>(null)
+  watch(highlighted, (i) => selectionLayer?.setSecondary(i ?? -1))
+  watch(selectedIndex, () => {
+    highlighted.value = null
+  })
+
+  return { selectedIndex, selected, live, propagationFailed, select, clear, highlighted }
 }

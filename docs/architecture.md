@@ -55,7 +55,8 @@ src/
                 speed, look angles, pass prediction. No Vue, no three.js.
   three/        scene, camera, controls, globe, point cloud, keyframe
                 timeline, orbit line, picking, unit conversion (km -> scene)
-  workers/      propagation worker (SGP4 for the whole catalog)
+  workers/      propagation worker (SGP4 for the whole catalog),
+                conjunction worker (close-approach screening)
   utils/        formatting, simulation clock
   composables/  useSatelliteData (load), useSatelliteLayer, useSelection,
                 useSimClock, useFilters
@@ -122,6 +123,10 @@ A full SGP4 pass over the catalog takes 14–23 ms in JS, too much for the main 
 - `orbital/passes.ts` scans elevation every 30 s over 24 h for one satellite, bisects horizon crossings (under 1 s) and finds the peak by golden-section search. It works from a WGS84 station with an east/north/up frame. About 4 ms for the ISS, run on the main thread only when the satellite, location or time window changes.
 - "Visible" = satellite outside Earth's cylindrical shadow and the Sun below −6° at the observer, at the peak.
 - The observer location is kept in `localStorage` only (rounded to 0.01°). It never leaves the browser.
+
+## Close approaches
+
+- On demand, for the selected satellite only, in `workers/conjunction.worker.ts`. Altitude-band filter, then coarse clearing by maximum closing speed, then range-rate minima on a 60 s grid, refined by golden-section search. Docked and formation-flying pairs are excluded. See [ADR 0003](adr/0003-conjunction-screening.md).
 
 ## Accuracy and data age
 

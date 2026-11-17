@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Vector3 } from 'three'
 import { computed, ref, shallowRef, watch } from 'vue'
+import ConjunctionsPanel from './components/ConjunctionsPanel.vue'
 import DataAgeBadge from './components/DataAgeBadge.vue'
 import DebugReadout from './components/DebugReadout.vue'
 import GlobeView from './components/GlobeView.vue'
@@ -10,6 +11,7 @@ import PassesPanel from './components/PassesPanel.vue'
 import SearchBox from './components/SearchBox.vue'
 import TimeControls from './components/TimeControls.vue'
 import ToggleRow from './components/ToggleRow.vue'
+import { useConjunctions } from './composables/useConjunctions'
 import { useFilters } from './composables/useFilters'
 import { useLighting } from './composables/useLighting'
 import { useObserver } from './composables/useObserver'
@@ -18,8 +20,11 @@ import { usePasses } from './composables/usePasses'
 import { useSatelliteData } from './composables/useSatelliteData'
 import { useSatelliteLayer } from './composables/useSatelliteLayer'
 import { useSelection } from './composables/useSelection'
+import { useSimClock } from './composables/useSimClock'
+import type { Conjunction } from './orbital/conjunctions'
+import { createSatrec, propagateEcf } from './orbital/propagate'
 import type { SceneController } from './three/scene'
-import { latLonToScene } from './three/units'
+import { ecfKmToScene, latLonToScene } from './three/units'
 import { buildSearchIndex } from './utils/search'
 
 const fatalError = ref<string | null>(null)
@@ -32,7 +37,7 @@ const isSample = computed(() => file.value?.source.toLowerCase().includes('sampl
 const scene = shallowRef<SceneController | null>(null)
 const { layer, stats } = useSatelliteLayer(scene, file)
 const { dayNight } = useLighting(scene)
-const { selectedIndex, selected, live, propagationFailed, select, clear } = useSelection(scene, layer, file)
+const { selectedIndex, selected, live, propagationFailed, select, clear, highlighted } = useSelection(scene, layer, file)
 const { active: activeFilter, counts, includes: filterIncludes } = useFilters(layer, file)
 
 const observer = useObserver()
@@ -48,6 +53,32 @@ function jumpToPass(ms: number): void {
   if (!loc || !scene.value) return
   latLonToScene(loc.latDeg, loc.lonDeg, 1, observerPoint)
   scene.value.flyToward(flyTarget.set(observerPoint[0]!, observerPoint[1]!, observerPoint[2]!))
+}
+
+const { state: conjunctionState, run: runConjunctions } = useConjunctions(file, selectedIndex)
+const clock = useSimClock()
+
+// Show a close approach: highlight the other object, jump to 20 s before
+// closest approach at real time, and look at where the selected satellite will be.
+const approachPoint = [0, 0, 0]
+const chosenApproach = shallowRef<Conjunction | null>(null)
+watch(highlighted, (i) => {
+  if (i === null) chosenApproach.value = null
+})
+function chooseApproach(c: Conjunction): void {
+  if (!filterIncludes(c.index)) activeFilter.value = 'all'
+  highlighted.value = c.index
+  chosenApproach.value = c
+  clock.jumpTo(c.tcaMs - 20_000)
+  clock.setRate(1)
+  clock.setPaused(false)
+  const record = selected.value?.record
+  const satrec = record ? createSatrec(record) : null
+  const ecf = satrec ? propagateEcf(satrec, c.tcaMs) : null
+  if (ecf && scene.value) {
+    ecfKmToScene(ecf[0], ecf[1], ecf[2], approachPoint)
+    scene.value.flyToward(flyTarget.set(approachPoint[0]!, approachPoint[1]!, approachPoint[2]!))
+  }
 }
 
 const searchIndex = computed(() => (file.value ? buildSearchIndex(file.value.satellites) : null))
@@ -132,6 +163,14 @@ if (showDebug) {
         @use-device="observer.useDeviceLocation()"
         @clear-location="observer.clear()"
         @jump="jumpToPass"
+      />
+      <ConjunctionsPanel
+        v-if="selected && file"
+        :state="conjunctionState"
+        :satellites="file.satellites"
+        :active="chosenApproach"
+        @run="runConjunctions()"
+        @choose="chooseApproach"
       />
     </aside>
 
