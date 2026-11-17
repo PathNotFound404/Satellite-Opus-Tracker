@@ -11,12 +11,20 @@ Thousands of real satellites moving in real time on an interactive 3D globe. Orb
 | Milestone | State |
 |---|---|
 | 1. Scaffold, globe, CI | Done |
-| 2. Data pipeline | Planned |
-| 3. Propagate and plot | Planned |
+| 2. Data pipeline | Done (deploy pending) |
+| 3. Propagate and plot | Done |
 | 4. Select, info panel, orbit | Planned |
 | 5. Search and filters | Planned |
 
 See [docs/roadmap.md](docs/roadmap.md).
+
+## How it works
+
+1. **Data:** a scheduled GitHub Actions workflow fetches CelesTrak's GP data (OMM JSON) every 6 hours, validates it and deploys it as one static JSON file. The browser never calls CelesTrak.
+2. **Orbit math:** a Web Worker runs SGP4 ([satellite.js](https://github.com/shashwatak/satellite-js)) for every satellite once a second and converts TEME to Earth-fixed coordinates with GMST.
+3. **Rendering:** all satellites are one three.js `Points` draw call. The vertex shader interpolates between the two latest keyframes, so the main thread does almost nothing per frame. See [ADR 0002](docs/adr/0002-propagation-strategy.md).
+
+Add `?debug` to the URL for frame timing and propagation stats.
 
 ## Tech stack
 

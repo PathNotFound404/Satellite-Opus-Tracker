@@ -61,7 +61,8 @@ src/
   orbital/           Pure functions around satellite.js: propagation, frame
                      conversion, look angles, pass prediction
   types/             Shared TypeScript types, including the data contract
-  utils/             Small pure helpers (formatting)
+  utils/             Small pure helpers (formatting, simulation clock)
+  workers/           Web Worker for SGP4 propagation (ADR 0002)
   styles/            Design tokens and base styles
   App.vue
   main.ts

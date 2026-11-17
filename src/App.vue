@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import DataAgeBadge from './components/DataAgeBadge.vue'
+import DebugReadout from './components/DebugReadout.vue'
 import GlobeView from './components/GlobeView.vue'
 import { useSatelliteData } from './composables/useSatelliteData'
+import { useSatelliteLayer } from './composables/useSatelliteLayer'
+import type { SceneController } from './three/scene'
 
 const fatalError = ref<string | null>(null)
 const { state: data, reload } = useSatelliteData()
 
 const file = computed(() => (data.value.status === 'ready' ? data.value.file : null))
 const isSample = computed(() => file.value?.source.toLowerCase().includes('sample') ?? false)
+
+// Already markRaw'd by GlobeView; shallowRef keeps Vue from walking it.
+const scene = shallowRef<SceneController | null>(null)
+const { stats } = useSatelliteLayer(scene, file)
+const showDebug = new URLSearchParams(window.location.search).has('debug')
 </script>
 
 <template>
   <main class="app">
-    <GlobeView @error="fatalError = $event" />
+    <GlobeView @ready="scene = $event" @error="fatalError = $event" />
 
     <header class="title panel">
       <h1 class="title__name">Satellite Tracker</h1>
@@ -35,6 +43,8 @@ const isSample = computed(() => file.value?.source.toLowerCase().includes('sampl
         <button class="status__retry" type="button" @click="reload()">Try again</button>
       </div>
     </footer>
+
+    <DebugReadout v-if="showDebug" class="debug" :stats="stats" />
 
     <div v-if="fatalError" class="fatal panel" role="alert">
       <p class="fatal__title">Can't show the globe</p>
@@ -100,6 +110,12 @@ const isSample = computed(() => file.value?.source.toLowerCase().includes('sampl
   color: var(--color-accent);
   font-weight: var(--weight-medium);
   cursor: pointer;
+}
+
+.debug {
+  position: absolute;
+  top: var(--edge-gap);
+  right: var(--edge-gap);
 }
 
 .fatal {

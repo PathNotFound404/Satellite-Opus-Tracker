@@ -3,6 +3,11 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
+  worker: {
+    // Module workers (all current browsers). satellite.js's optional WASM
+    // entry uses top-level await, which the default iife format rejects.
+    format: 'es',
+  },
   build: {
     // The three.js chunk alone is ~560 kB minified (~140 kB gzip); that is expected.
     chunkSizeWarningLimit: 600,
